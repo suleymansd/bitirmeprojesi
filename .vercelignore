@@ -1,6 +1,7 @@
 # Vercel deploys only the static frontend. Backend/model files run on Railway.
 *
 
+!package.json
 !vercel.json
 !web/
 !web/**

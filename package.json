@@ -1,0 +1,8 @@
+{
+  "name": "cilt-kanseri-frontend",
+  "version": "1.0.0",
+  "private": true,
+  "scripts": {
+    "build": "mkdir -p public/static && cp web/templates/index.html public/index.html && cp -R web/static/. public/static/"
+  }
+}

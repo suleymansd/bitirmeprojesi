@@ -1,7 +1,8 @@
 {
   "version": 2,
   "installCommand": "echo 'Skipping install: static frontend only'",
-  "buildCommand": "echo 'No build required for static frontend'",
+  "buildCommand": "npm run build",
+  "outputDirectory": "public",
   "cleanUrls": true,
   "rewrites": [
     {
@@ -9,12 +10,8 @@
       "destination": "https://cilt-kanseri-teshisi-bitirme-production.up.railway.app/api/:path*"
     },
     {
-      "source": "/static/:path*",
-      "destination": "/web/static/:path*"
-    },
-    {
       "source": "/(.*)",
-      "destination": "/web/templates/index.html"
+      "destination": "/index.html"
     }
   ]
 }
