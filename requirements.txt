@@ -1,0 +1,80 @@
+# =============================================================================
+# Cilt Kanseri Bitirme Projesi  -  requirements.txt
+# =============================================================================
+# Python: 3.11.x  (geliştirme ortamı: 3.11.9)
+#
+# Bu dosya, projedeki tüm Python betiklerinin gerçekten import ettiği
+# üçüncü-parti kütüphaneleri içerir. Sürümler, mevcut çalışan ortamdaki
+# sürümlere sabitlenmiştir (reprodüksiyon için).
+#
+# KURULUM (CPU ya da önceden kurulmuş CUDA PyTorch ile):
+#     pip install -r requirements.txt
+#
+# KURULUM (CUDA 12.x GPU destekli):
+#     1) Önce PyTorch'u resmi wheel ile kurun (aşağıdaki örneklerden biri):
+#
+#        # CUDA 12.8 (geliştirme ortamı bu):
+#        pip install torch==2.7.1 torchvision==0.22.1 --index-url https://download.pytorch.org/whl/cu128
+#
+#        # CUDA 12.1:
+#        pip install torch==2.7.1 torchvision==0.22.1 --index-url https://download.pytorch.org/whl/cu121
+#
+#        # Sadece CPU:
+#        pip install torch==2.7.1 torchvision==0.22.1 --index-url https://download.pytorch.org/whl/cpu
+#
+#     2) Sonra geri kalan bağımlılıkları kurun:
+#        pip install -r requirements.txt
+#
+# =============================================================================
+
+# ------------------------------------
+# Derin Öğrenme Çekirdeği (PyTorch)
+#   - train_baseline.py, train_gan.py, client.py, evaluate*, federated_utils.py
+#   - Not: CUDA/CPU seçimi için yukarıdaki index-url yönergesini kullanın.
+# ------------------------------------
+torch==2.7.1
+torchvision==0.22.1
+
+# ------------------------------------
+# Veri İşleme
+#   - data_loader.py, prepare_federated_splits.py (pandas)
+#   - Her yerde (numpy)
+# ------------------------------------
+numpy==2.1.3
+pandas==2.3.1
+
+# ------------------------------------
+# Görüntü Okuma / Yazma
+#   - data_loader.py, federated_utils.py (PIL.Image), letterbox padding
+# ------------------------------------
+Pillow==10.1.0
+
+# ------------------------------------
+# Metrikler ve Raporlama
+#   - train_baseline.py: f1_score, recall_score
+#   - evaluate.py, evaluate_federated.py: classification_report, confusion_matrix
+# ------------------------------------
+scikit-learn==1.7.0
+
+# ------------------------------------
+# Görselleştirme (Confusion Matrix PNG'leri)
+#   - evaluate.py, evaluate_federated.py  (matplotlib "Agg" backend + seaborn heatmap)
+# ------------------------------------
+matplotlib==3.10.3
+seaborn==0.13.2
+
+# ------------------------------------
+# İlerleme Çubukları
+#   - train_baseline.py, train_gan.py, generate_synthetic.py, evaluate*.py
+# ------------------------------------
+tqdm==4.67.1
+
+# ------------------------------------
+# Federe Öğrenme (Flower)
+#   - server.py, client.py
+# ------------------------------------
+flwr==1.29.0
+
+fastapi==0.116.1
+uvicorn==0.35.0
+python-multipart==0.0.20

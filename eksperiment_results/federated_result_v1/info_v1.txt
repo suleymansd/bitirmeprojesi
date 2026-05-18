@@ -1,0 +1,2 @@
+5 Raunt * 1 Local Epoch = Her hastane verinin üzerinden toplam 5 kez geçti.
+Hastane server sayısı: 5

@@ -1,0 +1,33 @@
+# Python sistem dosyaları
+__pycache__/
+*.py[cod]
+*$py.class
+
+# Sanal Ortam
+venv/
+.venv/
+env/
+
+# Veri setleri (Çok büyük oldukları için dışarıda bırakıyoruz)
+data/raw/
+data/synthetic/generated_malign/
+data/synthetic/samples/
+
+# Model ağırlıkları (90MB+ dosyalar GitHub'ı yorar)
+#checkpoints/
+
+# İşletim sistemi çöpleri
+.DS_Store
+Thumbs.db
+
+#10mb yi gecenler
+checkpoints/baseline/baseline_best_model.pth
+
+# Yerel deney çıktıları
+.mplconfig/
+.torch-cache/
+logs/
+checkpoints/federated_improved/
+checkpoints/federated_improved_full/
+checkpoints/federated_local_full/
+checkpoints/federated_local_smoke/

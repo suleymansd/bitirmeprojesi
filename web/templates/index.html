@@ -1,0 +1,132 @@
+<!doctype html>
+<html lang="tr">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>DermAI Dashboard</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Sora:wght@400;600;700&family=Manrope:wght@400;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/static/styles.css" />
+</head>
+<body>
+  <main class="layout">
+    <aside class="sidebar">
+      <div class="brand">
+        <p class="overline">Clinical AI</p>
+        <h1>DermAI</h1>
+      </div>
+
+      <div class="status-card">
+        <p>Sistem Durumu</p>
+        <strong id="healthBadge">Kontrol ediliyor...</strong>
+        <small id="modelMeta">Model bilgisi yükleniyor...</small>
+      </div>
+
+      <div class="control-card">
+        <label class="field" for="patientIdInput">
+          <span>Vaka Kodu</span>
+          <input id="patientIdInput" type="text" placeholder="CASE-001" maxlength="40" />
+        </label>
+
+        <label class="upload" for="fileInput">
+          <input id="fileInput" type="file" accept="image/*" hidden />
+          <span>Görsel Yükle</span>
+          <small>JPG, PNG, WEBP</small>
+        </label>
+
+        <label class="field" for="thresholdInput">
+          <span>Threshold</span>
+          <div class="threshold-row">
+            <input id="thresholdInput" type="range" min="0" max="1" step="0.01" value="0.20" />
+            <strong id="thresholdValue">0.20</strong>
+          </div>
+        </label>
+
+        <button id="analyzeBtn" class="btn primary" disabled>Analizi Başlat</button>
+        <button id="clearBtn" class="btn ghost" type="button">Geçmişi Temizle</button>
+        <button id="exportBtn" class="btn ghost" type="button">JSON İndir</button>
+      </div>
+    </aside>
+
+    <section class="main">
+      <header class="topbar">
+        <h2>Cilt Lezyon Risk Dashboard</h2>
+        <p id="clockText"></p>
+      </header>
+
+      <section class="kpi-grid">
+        <article class="kpi">
+          <p>Benign Skoru</p>
+          <strong id="benignScore">0.0000</strong>
+          <progress id="benignMeter" max="1" value="0"></progress>
+        </article>
+        <article class="kpi">
+          <p>Malign Skoru</p>
+          <strong id="malignScore">0.0000</strong>
+          <progress id="malignMeter" max="1" value="0"></progress>
+        </article>
+        <article class="kpi highlight">
+          <p>Karar</p>
+          <strong id="predictionText">Analiz bekleniyor</strong>
+          <small id="explainText">Görsel yüklendikten sonra model sonucu burada görüntülenir.</small>
+        </article>
+      </section>
+
+      <section class="panel perf-panel">
+        <div class="panel-head">
+          <h3>Model Performance (Test)</h3>
+          <span id="perfRound">Round -</span>
+        </div>
+        <div class="perf-grid">
+          <article><p>Accuracy</p><strong id="mAccuracy">-</strong></article>
+          <article><p>Macro F1</p><strong id="mMacroF1">-</strong></article>
+          <article><p>Malign Recall</p><strong id="mRecall">-</strong></article>
+          <article><p>Malign Precision</p><strong id="mPrecision">-</strong></article>
+        </div>
+        <div class="perf-cm">
+          <span>TP: <strong id="mTP">-</strong></span>
+          <span>FP: <strong id="mFP">-</strong></span>
+          <span>TN: <strong id="mTN">-</strong></span>
+          <span>FN: <strong id="mFN">-</strong></span>
+        </div>
+      </section>
+
+      <section class="content-grid">
+        <article class="panel preview-panel">
+          <h3>Görsel Önizleme</h3>
+          <div class="preview-wrap">
+            <img id="previewImage" alt="Önizleme" />
+            <p id="previewHint">Henüz görsel seçilmedi</p>
+          </div>
+        </article>
+
+        <article class="panel history-panel">
+          <div class="panel-head">
+            <h3>Analiz Geçmişi</h3>
+            <span id="historyCount">0 kayıt</span>
+          </div>
+          <div class="table-wrap">
+            <table>
+              <thead>
+                <tr>
+                  <th>Zaman</th>
+                  <th>Vaka</th>
+                  <th>Tahmin</th>
+                  <th>Malign</th>
+                  <th>Threshold</th>
+                </tr>
+              </thead>
+              <tbody id="historyBody">
+                <tr><td colspan="5" class="empty">Henüz kayıt yok.</td></tr>
+              </tbody>
+            </table>
+          </div>
+        </article>
+      </section>
+    </section>
+  </main>
+
+  <script src="/static/app.js"></script>
+</body>
+</html>

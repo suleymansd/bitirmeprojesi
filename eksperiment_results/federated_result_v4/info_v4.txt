@@ -1,0 +1,15 @@
+15 Raunt * 1 Local Epoch = Her hastane verinin üzerinden toplam 15 kez geçti.
+Hastane server sayısı: 2 , LR(Learning Rate): 1e-4 , Sonuç: Geçiş Evresi(Aşırı Öğrenme/Overfitting)
+
+V3 deki ile tek farklı değişiklik round sayısı 10 dan 15 e çıktı. 
+
+V3 (10 Raunt): Kaçırılan Hasta (FN) = 67, Malign Recall = %67.16
+
+V4 (15 Raunt): Kaçırılan Hasta (FN) = 78, Malign Recall = %61.76
+
+Raunt sayısını 10'dan 15'e çıkardığımızda model daha iyi öğrenmek yerine geriye gitti ve 11 hastayı daha gözden kaçırdı.
+
+Neden Geriye Gitti?
+Bu durum literatürde "Catastrophic Forgetting" (Kayıcı Unutma) veya yerel minimuma saplanma olarak bilinir. 10. rauntta model en iyi dengeyi bulmuştu. Biz onu 5 raunt daha zorlayınca, FedAvg (ağırlık ortalaması alma) algoritması hassas kanser belirtilerini törpülemeye başladı ve model yine çoğunluk sınıfı olan "İyi Huylu" (Benign) tarafına doğru kaydı.
+
+Orijinal hipotezimiz (Baseline'ı 57 FN'nin altına çekmek) gerçekleşmedi. Ancak bir yazılım mühendisi olarak tezin için çok daha değerli bir araştırma sonucuna ulaştık.

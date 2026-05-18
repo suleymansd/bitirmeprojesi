@@ -1,0 +1,17 @@
+.git
+.venv
+.torch-cache
+.mplconfig
+data
+eksperiment_results
+logs
+
+checkpoints/baseline
+checkpoints/gan
+checkpoints/federated/federated_model_round_*.pth
+!checkpoints/federated/federated_model_round_12_fp16.pth
+
+*.png
+*.pdf
+federe_*.png
+yol_haritasi.pdf

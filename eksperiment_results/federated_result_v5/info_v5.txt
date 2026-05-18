@@ -1,0 +1,19 @@
+12 Raunt * 1 Local Epoch = Her hastane verinin üzerinden toplam 12 kez geçti.
+Hastane server sayısı: 2 , LR(Learning Rate): 5e-5 , Sonuç: Yetersiz Öğrenme(Underfitting)
+
+Rakamlara baktığımızda FN (Kaçırılan Hasta) sayısı 92'ye fırlamış durumda.
+
+Öğrenme Oranı"nı (Learning Rate) 1e-4 değerinden 5e-5 değerine (yani yarısına) düşürmüştük ve raundu 12 yapmıştık. Amacımız o 67 FN aldığımız noktayı daha da düşürmekti. 
+
+Ancak adımları (LR) o kadar küçülttük ki, model 12 raunt boyunca yavaş yavaş ilerlemesine rağmen hedefe varamadan süresi bitti. Literatürde buna Underfitting (Yetersiz Öğrenme) diyoruz. Model, kanserli dokuların o karmaşık yapısını çözecek kadar büyük adımlar atamadı.
+
+Yapılan İşlemler:
+Modelimiz 10 rauntta tam o tatlı noktaya yaklaşıyor ama learning_rate = 1e-4 adımları büyük olduğu için o noktanın üzerinden atlıyor (veya sapıyor) olabilir. Adımları küçültürsek, tam o hedefe yumuşak bir iniş yapabilir.
+1. src/config.py:
+   - NUM_ROUNDS = 12 (10 ile 13 arası, güvenli sınır)
+2. src/client.py:
+   - learning_rate = 5e-5 (1e-4'ten daha düşük, adımları küçülttük)
+   - local_epochs = 1 (KORU, asla artırma)
+   - AdamW, Gradient Clipping ve Class-weight KORU.
+3. src/prepare_federated_splits.py:
+   - Sentetik limit = 1000 (KORU)

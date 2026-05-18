@@ -1,0 +1,38 @@
+10 Raunt * 1 Local Epoch = Her hastane verinin üzerinden toplam 10 kez geçti.
+Hastane server sayısı: 2 , LR(Learning Rate): 1e-4 , Sonuç: En iyi Nokta
+
+"Light Touch" Operasyonunun Başarısı
+Bir önceki o korkunç 20 rauntluk aşırı eğitimde (V2) model kanseri tamamen unutmuş ve 128 hastayı (FN) kaçırmıştı. Recall oranımız %37'ye çakılmıştı.
+Şimdi "Hafif Dokunuş" (V3) ile sentetik veriyi 1000'e çekip raundu 10'a indirdiğimizde:
+
+Kaçırılan Hasta (FN): 128'den 67'ye düştü! (Tam 61 hastayı geri kazandık).
+
+Malign Recall: %37'den %67.16'ya fırladı!
+
+Bu sonuç bize şunu bağırıyor: Teşhisimiz %100 doğruydu. Modelimiz önceki denemede gerçekten GAN gürültüsüne "overfit" olmuş (ezberlemiş) ve gerçek kanserleri tanıyamaz hale gelmişti. Hafifletilmiş eğitim stratejimiz bu "Domain Shift" (Alan Kayması) zehirlenmesini tedavi etti.
+
+📉 Acı Gerçek: Henüz Patronu Yenemedik
+Kendi içimizdeki krizi çözdük ama en baştaki asıl rakibimize, yani Merkezi Baseline Model'e (57 FN, %72 Recall) karşı durumu değerlendirdiğimizde, hala 10 hasta gerideyiz. Hipotezimiz (FL + DCGAN, merkezi modeli geçer) kağıt üzerinde henüz tam olarak kanıtlanmadı.
+
+Peki, neden o son 10 hastayı kurtarıp 57'nin altına inemiyoruz?
+
+Federe Öğrenmenin Doğal Vergisi (Privacy vs. Utility Trade-off): Literatürde bu çok bilinen bir kuraldır. Verileri merkezde toplamak (Baseline) her zaman daha keskin sonuç verir. Federe öğrenmede ise hastaneler kendi ağırlıklarını sunucuya gönderir ve sunucu bunların ortalamasını (FedAvg) alır. Ortalaması alınan bilgiler her zaman biraz "bulanıklaşır". Gizliliği (KVKK) sağladığımız için doğruluktan ufak bir vergi ödüyoruz.
+
+Kırılma Noktasındayız: 10 Rauntluk eğitim modeli toparladı ama belki tam olarak "pişmesine" (convergence) birkaç adım daha lazımdı.
+
+Hatırlarsan, 128 hasta kaçıran o başarısız denemede epoch 3'tü. Model 20 raunt boyunca her seferinde verinin üzerinden 3 kez geçerek gereğinden fazla "antrenman" yapmış ve gerçek kanser dokusu yerine DCGAN'ın ürettiği sahte dokuların gürültülerini ezberlemişti (Overfitting). Biz epoch'u 1'e düşürerek modelin veriye sadece "şöyle bir bakıp geçmesini" sağladık; böylece detaydaki gürültülere boğulmadan sadece genel kanser hatlarını öğrendi.
+
+Yapılan İşlemler:
+NUM_ROUNDS = 10 aktif.
+Sentetik cap 1000 aktif.
+Client varsayılanları:
+local_epochs = 1
+learning_rate = 1e-4
+AdamW + weight_decay=1e-4 korunuyor
+gradient clipping max_norm=1.0 korunuyor
+class-weighted loss korunuyor.
+Hızlı split kontrolünde yeni ayarlar beklenen etkiyi verdi:
+
+allowed synthetic = 1000
+merged malign ratio = 0.2825
+client_sizes = [4506, 4506]

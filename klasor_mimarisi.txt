@@ -1,0 +1,51 @@
+Cilt_Kanseri_Bitirme/
+│
+├── data/                                 # 📁 Tüm veri setleri (GitHub'a YÜKLENMEZ)
+│   ├── raw/                              # Orijinal HAM10000 (Kaggle'dan)
+│   │   ├── HAM10000_images_part_1/       # 1. parça JPG görüntüler
+│   │   ├── HAM10000_images_part_2/       # 2. parça JPG görüntüler
+│   │   └── HAM10000_metadata.csv         # image_id, dx (hastalık kodu), hasta bilgileri
+│   ├── synthetic/                        # DCGAN çıktıları
+│   │   ├── generated_malign/             # 6450 sentetik Malign JPG (synth_malign_00001.jpg ...)
+│   │   └── samples/                      # GAN eğitim ilerleme grid'leri (epoch_010.png ...)
+│   └── federated_splits/                 # 5 istemciye dağıtılmış CSV'ler
+│       ├── client_1.csv                  # image_path,label (hastane 1'in verisi)
+│       ├── client_2.csv                  # hastane 2
+│       ├── client_3.csv                  # hastane 3
+│       ├── client_4.csv                  # hastane 4
+│       └── client_5.csv                  # hastane 5
+│
+├── src/                                  # 📁 Tüm Python kaynak kodları
+│   ├── data_loader.py                    # HAM10000 Dataset sınıfı + SquarePad + binary label mapping (mel/bcc/akiec→1, diğer→0)
+│   ├── train_baseline.py                 # Baseline ResNet50 eğitimi (AMP, 10 epoch, dengesiz veri ile)
+│   ├── evaluate.py                       # Baseline modelinin %10 test setinde değerlendirmesi (classification report + CM PNG)
+│   ├── train_gan.py                      # DCGAN (128x128) eğitimi — sadece Malign'lere bakar; TTUR + label smoothing + Dropout stabilizasyonları
+│   ├── generate_synthetic.py             # Eğitilmiş Generator'dan 6450 adet sentetik Malign JPG üretir
+│   ├── prepare_federated_splits.py       # Train + Sentetik birleşimi → 5 eşit IID CSV'ye dağıtım (seed=42)
+│   ├── federated_utils.py                # FedClientDataset, build_transforms, build_model, get/set_parameters (ortak yardımcılar)
+│   ├── client.py                         # Flower NumPyClient — hastane simülasyonu (fit/evaluate, AMP)
+│   ├── server.py                         # Flower sunucusu + SaveFedAvg (her raund sonunda global .pth kaydı)
+│   └── evaluate_federated.py             # Son raund global modelinin gerçek %10 test setinde değerlendirmesi
+│
+├── checkpoints/                          # 📁 Eğitilmiş model ağırlıkları ve rapor görselleri (Git'e yüklenmez)
+│   ├── baseline/
+│   │   ├── baseline_best_model.pth       # En iyi Val Macro-F1'i yakalayan ResNet50 ağırlıkları
+│   │   ├── baseline_confusion_matrix.png # evaluate.py çıktısı (seaborn heatmap)
+│   │   └── terminal_loglari.png          # Eğitim ekran logu (manuel ekran görüntüsü)
+│   ├── gan/
+│   │   └── generator_final.pth           # DCGAN Generator son ağırlıkları + mimari config
+│   └── federated/
+│       ├── federated_model_round_1.pth   # 1. raund FedAvg sonrası global model
+│       ├── federated_model_round_2.pth   # 2. raund
+│       ├── federated_model_round_3.pth   # 3. raund
+│       ├── federated_model_round_4.pth   # 4. raund
+│       ├── federated_model_round_5.pth   # 5. raund (NİHAİ global model)
+│       └── federated_confusion_matrix.png# evaluate_federated.py çıktısı
+│
+├── run_federated.ps1                     # Windows PowerShell: server + 5 client'ı tek komutla ayrı pencerelerde başlatır
+├── requirements.txt                      # Tüm Python bağımlılıkları (sabitlenmiş sürümler + CUDA kurulum notu)
+├── klasor_mimarisi.txt                   # (BU DOSYA) Güncel klasör yapısının kısa özeti
+├── PROJE_REHBERI.md                      # Detaylı proje sözlüğü / aptala anlatır gibi rehber (12 bölüm)
+├── yol_haritasi.pdf                      # Projenin 6 aşamalı planlama belgesi (başlangıç dökümanı)
+├── .gitignore                            # Git'in yok sayacağı dosyalar (venv/, data/, checkpoints/, *.pth ...)
+└── README.md                             # (varsa) Kısa proje tanıtımı — detay için PROJE_REHBERI.md'ye bakın

@@ -1,0 +1,33 @@
+# =============================================================================
+# Geliştirme (kod düzenleme) için minimal bağımlılıklar
+# =============================================================================
+# Bu dosya, training YAPMAYACAK geliştiriciler içindir. Training/evaluation
+# GPU'lu makinelerde orijinal `requirements.txt` ile yapılmaya devam eder.
+#
+# Çıkarılanlar (sadece evaluate*.py'de kullanılıyor):
+#   - matplotlib
+#   - seaborn
+# Confusion matrix PNG üreten betiklere dokunacaksan bunları geri ekle.
+#
+# KURULUM:
+#   python3.11 -m venv venv
+#   source venv/bin/activate            # Windows: venv\Scripts\activate
+#
+#   # 1) CPU PyTorch (CUDA wheel ~2GB, CPU ~200MB)
+#   pip install torch==2.7.1 torchvision==0.22.1 \
+#       --index-url https://download.pytorch.org/whl/cpu
+#
+#   # 2) Geri kalan
+#   pip install -r requirements-dev.txt
+# =============================================================================
+
+torch==2.7.1
+torchvision==0.22.1
+
+numpy==2.1.3
+pandas==2.3.1
+Pillow==10.1.0
+
+flwr==1.29.0
+scikit-learn==1.7.0
+tqdm==4.67.1

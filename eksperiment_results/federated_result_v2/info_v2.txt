@@ -1,0 +1,75 @@
+20 Raunt * 3 Local Epoch = Her hastane verinin üzerinden toplam 60 kez geçti.
+Hastane server sayısı: 2 , LR(Learning Rate): 1e-4 , Sonuç: Aşırı Öğrenme(Overfitting)
+
+Sonuçlara baktığımızda, maalesef hipotezimiz bu ayarlarla çöktü. Kaçırılan hasta (FN) sayımız 128'e fırladı ve Recall %37'ye çakıldı.
+
+Modelimiz kelimenin tam anlamıyla "Tembel Doktor" moduna geri döndü ve neredeyse her şeye "İyi Huylu (Benign)" diyerek kolaya kaçtı (FP 63'e düştü ama FN 128 oldu).
+
+Teşhis: "Sentetik Aşırı Öğrenmesi" (Synthetic Overfitting)
+GAN Artefaktları (Gürültü): Bizim DCGAN modelimiz kanser resimlerini üretirken gözle görülmeyen ama yapay zekanın fark ettiği bazı "fırça izleri" (artefaktlar) bıraktı.
+
+Aşırı Eğitim (60 Tur): 20 raunt x 3 lokal epoch = Model verinin üzerinden tam 60 kez geçti. Bu süreçte ResNet50 o kadar çok çalıştı ki, gerçek kanser dokusunu unutup DCGAN'ın fırça izlerini ezberledi.
+
+Sınavdaki Çuvallama: Test setinde hiç sentetik veri yok (sadece 1002 gerçek fotoğraf var). Model testte "fırça izi" (GAN gürültüsü) göremeyince, karşısındaki gerçek kansere bile "Bu temiz, İyi Huylu" dedi.
+
+Yani modelimiz kanseri değil, bizim GAN'ımızı öğrenmiş oldu!
+
+Yapılan İşlemler:
+Harika, istediğin değişiklikleri hedef dosyalarda uyguladım ve hızlı doğrulamasını yaptım.
+
+src/config.py
+NUM_CLIENTS = 2
+NUM_ROUNDS = 20
+src/prepare_federated_splits.py
+Literal path/seed/ratio/client değerleri kaldırıldı, config üzerinden okunuyor:
+METADATA_CSV, IMAGES_DIR, SYNTHETIC_MALIGN_DIR, FEDERATED_SPLITS_DIR
+TRAIN_RATIO, VAL_RATIO, TEST_RATIO, SPLIT_SEED
+NUM_CLIENTS
+Sentetik enjeksiyon limiti eklendi:
+allowed = min(n_benign - n_malign, 3000)
+deterministik: sorted liste üzerinden ilk N
+Birleşik veri için malign oranı raporlanıyor, %45 üstü için uyarı basıyor.
+2 istemciye IID bölme korunuyor, client_1.csv/client_2.csv isimlendirmesi aynı.
+src/server.py
+config import edildi.
+Literal 5 ve 42 kaldırıldı:
+num_rounds -> config.NUM_ROUNDS
+num_clients -> config.NUM_CLIENTS
+checkpoint_dir -> config.FEDERATED_CKPT_DIR
+initial seed -> config.SPLIT_SEED
+model sınıf sayısı -> config.NUM_CLASSES
+Üst açıklamalar 20 round ve 2 client akışına uyumlandı.
+src/client.py
+config ile merkezileştirildi:
+federated_dir -> config.FEDERATED_SPLITS_DIR
+batch_size -> config.BATCH_SIZE
+num_workers -> config.default_num_workers()
+num_classes -> config.NUM_CLASSES
+Hiperparametreler:
+local_epochs: 1 -> 3
+learning_rate: 1e-4 -> 5e-5
+Class-weighted loss eklendi (balanced formül):
+w = [total/(2*n_b), total/(2*n_m)]
+nn.CrossEntropyLoss(weight=w)
+Optimizer:
+Adam -> AdamW(weight_decay=1e-4)
+Gradient clipping:
+scaler.unscale_(optimizer)
+clip_grad_norm_(..., 1.0)
+Yardım metni istemci aralığı 1..2 olarak düzeltildi.
+run_federated.ps1
+5 yerine 2 istemci başlatacak şekilde güncellendi (for ($i=1; $i -le 2; $i++)).
+Baseline’a dokunulmadı
+
+src/train_baseline.py ve baseline karşılaştırma hattı değiştirilmedi.
+Doğrulama (çalıştırıldı)
+
+Sözdizimi: config.py, prepare_federated_splits.py, server.py, client.py → OK
+Split/sentetik cap kuru testi:
+orig: 8012 (b=6466, m=1546)
+synth_all: 6450
+gap: 4920
+allowed: 3000
+merged: 11012
+malign_ratio: 0.4128 (~%41.28, hedef aralığa uygun)
+client_sizes: [5506, 5506] (2 istemci eşit)

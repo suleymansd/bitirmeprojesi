@@ -1,0 +1,17 @@
+{
+  "cleanUrls": true,
+  "rewrites": [
+    {
+      "source": "/api/:path*",
+      "destination": "https://cilt-kanseri-teshisi-bitirme-production.up.railway.app/api/:path*"
+    },
+    {
+      "source": "/static/:path*",
+      "destination": "/web/static/:path*"
+    },
+    {
+      "source": "/(.*)",
+      "destination": "/web/templates/index.html"
+    }
+  ]
+}
