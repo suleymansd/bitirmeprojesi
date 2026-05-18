@@ -110,8 +110,9 @@ class InferenceService:
         import torch.nn.functional as F
 
         tensor = self.transform(image).unsqueeze(0).to(self.device)
-        logits = self.model(tensor)
-        probs = F.softmax(logits, dim=1).squeeze(0)
+        with self.torch.no_grad():
+            logits = self.model(tensor)
+            probs = F.softmax(logits, dim=1).squeeze(0)
 
         benign = float(probs[0].item())
         malign = float(probs[1].item())
@@ -203,4 +204,6 @@ async def predict(file: UploadFile = File(...), threshold: float | None = None) 
         raise HTTPException(status_code=400, detail=str(exc)) from exc
     except FileNotFoundError as exc:
         raise HTTPException(status_code=503, detail=str(exc)) from exc
+    except Exception as exc:
+        raise HTTPException(status_code=500, detail=f"Model analiz hatası: {type(exc).__name__}: {exc}") from exc
     return JSONResponse(result)

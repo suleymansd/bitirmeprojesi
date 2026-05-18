@@ -30,6 +30,8 @@ const mFP = document.getElementById("mFP");
 const mTN = document.getElementById("mTN");
 const mFN = document.getElementById("mFN");
 
+const API_BASE = "https://cilt-kanseri-teshisi-bitirme-production.up.railway.app";
+
 let selectedFile = null;
 let history = [];
 
@@ -79,10 +81,10 @@ fileInput.addEventListener("change", (e) => {
 
 async function checkHealth() {
   try {
-    const res = await fetch("/api/health");
+    const res = await fetch(`${API_BASE}/api/health`);
     const data = await res.json();
-    healthBadge.textContent = `Hazır / ${data.device}`;
-    modelMeta.textContent = data.checkpoint;
+    healthBadge.textContent = data.model_loaded ? "Hazır / model yüklü" : "Hazır / model ilk analizde yüklenecek";
+    modelMeta.textContent = data.recommended_checkpoint || "Model bilgisi yok";
   } catch {
     healthBadge.textContent = "API yok";
   }
@@ -90,7 +92,7 @@ async function checkHealth() {
 
 async function loadPerformance() {
   try {
-    const res = await fetch("/api/performance");
+    const res = await fetch(`${API_BASE}/api/performance`);
     const data = await res.json();
     const t = data.test_metrics || {};
     const cm = t.confusion || {};
@@ -120,8 +122,8 @@ analyzeBtn.addEventListener("click", async () => {
   const threshold = Number(thresholdInput.value);
 
   try {
-    const res = await fetch(`/api/predict?threshold=${threshold}`, { method: "POST", body: formData });
-    const data = await res.json();
+    const res = await fetch(`${API_BASE}/api/predict?threshold=${threshold}`, { method: "POST", body: formData });
+    const data = await res.json().catch(() => ({}));
     if (!res.ok) throw new Error(data.detail || "API hatası");
 
     const isMalign = data.prediction.class_id === 1;
