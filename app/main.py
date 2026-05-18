@@ -5,10 +5,9 @@ import os
 import sys
 import json
 from pathlib import Path
+from threading import Lock
 from typing import Dict, Tuple
 
-import torch
-import torch.nn.functional as F
 from fastapi import FastAPI, File, HTTPException, UploadFile
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import FileResponse, JSONResponse
@@ -21,14 +20,29 @@ if str(SRC_DIR) not in sys.path:
     sys.path.append(str(SRC_DIR))
 
 import config  # noqa: E402
-from federated_utils import build_model, build_transforms  # noqa: E402
 
 
 CLASS_NAMES = {0: "Benign", 1: "Malign"}
+_service: InferenceService | None = None
+_service_lock = Lock()
+
+
+def load_deployment_config() -> dict:
+    cfg_path = ROOT_DIR / "checkpoints" / "deployment_config.json"
+    if not cfg_path.is_file():
+        return {}
+    try:
+        return json.loads(cfg_path.read_text(encoding="utf-8"))
+    except Exception:
+        return {}
 
 
 class InferenceService:
     def __init__(self) -> None:
+        import torch
+        from federated_utils import build_transforms
+
+        self.torch = torch
         self.device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
         self.default_threshold = 0.5
         self.model, self.checkpoint_path = self._load_model()
@@ -36,13 +50,7 @@ class InferenceService:
         self.model.eval()
 
     def _load_deployment_config(self) -> dict:
-        cfg_path = ROOT_DIR / "checkpoints" / "deployment_config.json"
-        if not cfg_path.is_file():
-            return {}
-        try:
-            return json.loads(cfg_path.read_text(encoding="utf-8"))
-        except Exception:
-            return {}
+        return load_deployment_config()
 
     def _select_checkpoint(self) -> Path:
         deploy_cfg = self._load_deployment_config()
@@ -77,9 +85,11 @@ class InferenceService:
             raise FileNotFoundError("Federated checkpoint bulunamadı.")
         return max(candidates, key=lambda p: p.stat().st_mtime)
 
-    def _load_model(self) -> Tuple[torch.nn.Module, Path]:
+    def _load_model(self) -> Tuple[object, Path]:
+        from federated_utils import build_model
+
         ckpt_path = self._select_checkpoint()
-        checkpoint = torch.load(ckpt_path, map_location=self.device)
+        checkpoint = self.torch.load(ckpt_path, map_location=self.device)
 
         # Baseline checkpoint içinde optimizer vb. de olabilir, sadece state_dict alıyoruz.
         state_dict = checkpoint.get("model_state_dict", checkpoint)
@@ -88,7 +98,6 @@ class InferenceService:
         model.load_state_dict(state_dict)
         return model, ckpt_path
 
-    @torch.no_grad()
     def predict(self, image_bytes: bytes, threshold: float | None = None) -> Dict:
         try:
             image = Image.open(io.BytesIO(image_bytes)).convert("RGB")
@@ -97,6 +106,8 @@ class InferenceService:
 
         if threshold is None:
             threshold = self.default_threshold
+
+        import torch.nn.functional as F
 
         tensor = self.transform(image).unsqueeze(0).to(self.device)
         logits = self.model(tensor)
@@ -125,6 +136,15 @@ class InferenceService:
         }
 
 
+def get_service() -> InferenceService:
+    global _service
+    if _service is None:
+        with _service_lock:
+            if _service is None:
+                _service = InferenceService()
+    return _service
+
+
 app = FastAPI(title="Cilt Kanseri Tespit Demo", version="1.0.0")
 app.add_middleware(
     CORSMiddleware,
@@ -135,7 +155,6 @@ app.add_middleware(
 )
 
 app.mount("/static", StaticFiles(directory=str(ROOT_DIR / "web" / "static")), name="static")
-service = InferenceService()
 
 
 @app.get("/")
@@ -145,16 +164,18 @@ def home() -> FileResponse:
 
 @app.get("/api/health")
 def health() -> JSONResponse:
+    deploy_cfg = load_deployment_config()
     return JSONResponse({
         "status": "ok",
-        "checkpoint": str(service.checkpoint_path),
-        "device": str(service.device),
+        "model_loaded": _service is not None,
+        "recommended_checkpoint": deploy_cfg.get("recommended_checkpoint"),
+        "recommended_round": deploy_cfg.get("recommended_round"),
     })
 
 
 @app.get("/api/performance")
 def performance() -> JSONResponse:
-    deploy_cfg = service._load_deployment_config()
+    deploy_cfg = load_deployment_config()
     return JSONResponse({
         "recommended_round": deploy_cfg.get("recommended_round"),
         "recommended_threshold": deploy_cfg.get("recommended_threshold"),
@@ -177,7 +198,9 @@ async def predict(file: UploadFile = File(...), threshold: float | None = None) 
         raise HTTPException(status_code=400, detail="Boş dosya gönderildi.")
 
     try:
-        result = service.predict(image_bytes, threshold=threshold)
+        result = get_service().predict(image_bytes, threshold=threshold)
     except ValueError as exc:
         raise HTTPException(status_code=400, detail=str(exc)) from exc
+    except FileNotFoundError as exc:
+        raise HTTPException(status_code=503, detail=str(exc)) from exc
     return JSONResponse(result)
