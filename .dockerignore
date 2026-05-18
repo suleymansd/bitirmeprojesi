@@ -1,0 +1,24 @@
+.git
+.venv
+.torch-cache
+.mplconfig
+__pycache__
+*.pyc
+.DS_Store
+
+# HAM10000/raw training data is not needed for inference deploy
+data
+logs
+eksperiment_results
+
+# Keep deployment model only
+checkpoints/baseline
+checkpoints/gan
+checkpoints/federated/federated_model_round_*.pth
+!checkpoints/federated/federated_model_round_12_fp16.pth
+
+# Large report/static artifacts not required by API runtime
+*.png
+*.pdf
+federe_*.png
+yol_haritasi.pdf
