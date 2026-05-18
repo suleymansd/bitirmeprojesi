@@ -1,4 +1,7 @@
 {
+  "version": 2,
+  "installCommand": "echo 'Skipping install: static frontend only'",
+  "buildCommand": "echo 'No build required for static frontend'",
   "cleanUrls": true,
   "rewrites": [
     {
