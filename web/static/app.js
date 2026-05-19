@@ -30,7 +30,7 @@ const mFP = document.getElementById("mFP");
 const mTN = document.getElementById("mTN");
 const mFN = document.getElementById("mFN");
 
-const API_BASE = "https://cilt-kanseri-teshisi-bitirme-production.up.railway.app";
+const API_BASE = "https://bitirmeprojesi-production-bcd3.up.railway.app";
 
 let selectedFile = null;
 let history = [];
