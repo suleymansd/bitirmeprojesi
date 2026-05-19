@@ -1,0 +1,8 @@
+{
+  "name": "dermai-static-frontend",
+  "version": "1.0.0",
+  "private": true,
+  "scripts": {
+    "build": "mkdir -p public/static && cp templates/index.html public/index.html && cp -R static/. public/static/"
+  }
+}
